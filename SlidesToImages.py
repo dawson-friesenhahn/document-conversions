@@ -8,6 +8,9 @@ from PIL import Image, ImageDraw, ImageFont
 import os
 import io
 
+from reportlab.pdfgen import canvas
+import glob
+import shutil
 
 # Conversion constant (from EMUs to pixels)
 EMU_TO_PX = 1 / 9525
@@ -126,9 +129,28 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
 
 
 # Function to save all slides as images
-def save_pptx_as_images(pptx_path, output_folder):
+def pptx_as_images(pptx_path) -> list[Image.Image]:
+    prs = pptx.Presentation(pptx_path)
+    
+    # Get the slide dimensions from the presentation object
+    slide_width_emu = prs.slide_width
+    slide_height_emu = prs.slide_height
+
+    ret= []
+
+    for slide_num, slide in enumerate(prs.slides):
+        # Render the slide as an image
+        image = render_slide_as_image(slide, slide_width_emu, slide_height_emu)
+
+        ret.append(image)
+    return ret
+
+# Function to save all slides as images
+def save_pptx_as_images(pptx_path, output_folder) -> str:
     prs = pptx.Presentation(pptx_path)
     os.makedirs(output_folder, exist_ok=True)
+    os.mkdir(os.path.join(output_folder, "temp_images"))
+    output_folder= os.path.join(output_folder, "temp_images")
 
     # Get the slide dimensions from the presentation object
     slide_width_emu = prs.slide_width
@@ -140,11 +162,42 @@ def save_pptx_as_images(pptx_path, output_folder):
 
         # Save the image as PNG
         image.save(f"{output_folder}/slide_{slide_num + 1}.png")
+    
+    return output_folder
+    
 
+
+def images_to_pdf(images_dir: str, filename: str):
+    c= canvas.Canvas(filename=filename, pagesize=(841.89,595.27))
+    images= glob.glob(os.path.join(images_dir, "*.png"))
+    for image in images:
+        c.drawImage(image, 0, 0, width= 841.89)
+        c.showPage()
+    
+    c.save()
+
+
+def pptx_to_pdf(pptx_path, output_folder=None, delete_intermediate_images= True):
+    output_name= os.path.basename(pptx_path).split(".")[0] + ".pdf"
+    if not output_folder:
+        output_folder= os.getcwd()
+    if output_folder:
+        output_name = os.path.join(output_folder, output_name)
+
+    images_dir = save_pptx_as_images(pptx_path, output_folder) #will create new directory there and save the images
+
+    #print(slides_as_images)
+
+    images_to_pdf(images_dir, output_name)
+
+    if delete_intermediate_images:
+        shutil.rmtree(images_dir)
+
+    
 
 if __name__ == "__main__":
     # Example usage
     pptx_file = "DeleteMe.pptx"  # Path to PowerPoint file
-    output_folder = "output_images"  # Folder to save images
+    output_folder = None#"output_images"  # Folder to save images
 
-    save_pptx_as_images(pptx_file, output_folder)
+    pptx_to_pdf(pptx_file, output_folder)

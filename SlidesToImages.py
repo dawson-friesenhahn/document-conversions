@@ -57,7 +57,7 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
                     )
 
         # Example for simple rectangles (can be extended to other shapes)
-        if shape.shape_type == MSO_AUTO_SHAPE_TYPE.RECTANGLE:  # Rectangle
+        if False and shape.shape_type == MSO_AUTO_SHAPE_TYPE.RECTANGLE:  # Rectangle
             x1 = emu_to_pixels(shape.left)
             y1 = emu_to_pixels(shape.top)
             x2 = x1 + emu_to_pixels(shape.width)
@@ -171,7 +171,7 @@ def images_to_pdf(images_dir: str, filename: str):
     c= canvas.Canvas(filename=filename, pagesize=(841.89,595.27))
     images= glob.glob(os.path.join(images_dir, "*.png"))
     for image in images:
-        c.drawImage(image, 0, 0, width= 841.89)
+        c.drawImage(image, 0, 0, width= 841.89, height=595.27)#preserveAspectRatio=True)
         c.showPage()
     
     c.save()

@@ -12,14 +12,7 @@ from reportlab.pdfgen import canvas
 import glob
 import shutil
 
-
-def emu_to_pixels(emu_value):
-    return int(emu_value * 1 / 9525)
-
-
-def emu_to_pt(emu_value):
-    return int(emu_value * 1 / 12700)
-
+from .util import emu_to_pixels, emu_to_pt
 
 def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height_emu):
     # Convert slide dimensions from EMUs to pixels
@@ -150,7 +143,6 @@ def pptx_as_images(pptx_path) -> list[Image.Image]:
         ret.append(image)
     return ret
 
-
 def save_pptx_as_images(pptx_path, output_folder) -> str:
     prs = pptx.Presentation(pptx_path)
     os.makedirs(output_folder, exist_ok=True)
@@ -187,7 +179,7 @@ def images_to_pdf(images_dir: str, filename: str):
     c.save()
 
 
-def pptx_to_pdf(pptx_path, output_folder=None, delete_intermediate_images=True):
+def pptx_to_pdf(pptx_path, output_folder=None, delete_intermediate_images=True) -> str:
     output_name = os.path.basename(pptx_path).split(".")[0] + ".pdf"
     if not output_folder:
         output_folder = os.getcwd()
@@ -205,10 +197,6 @@ def pptx_to_pdf(pptx_path, output_folder=None, delete_intermediate_images=True):
     if delete_intermediate_images:
         shutil.rmtree(images_dir)
 
+    return output_name
 
-if __name__ == "__main__":
-    # Example usage
-    pptx_file = "DeleteMe.pptx"  # Path to PowerPoint file
-    output_folder = None  # "output_images"  # Folder to save images
 
-    pptx_to_pdf(pptx_file, output_folder)

@@ -4,8 +4,8 @@ import os
 os.environ["no_proxy"] = "127.0.0.1"
 
 if __name__ == "__main__":
-    files = {"file": open("TestPowerpoint.pptx", "rb")}
-    # files= {"file": open("NotARealPowerpoint.pptx", "rb")}
+    files = {"file": open("./test_files/TestPowerpoint.pptx", "rb")}
+    # files= {"file": open("./test_files/NotARealPowerpoint.pptx", "rb")}
     # files= {"file": open("requirements.txt", "rb")}
 
     resp = requests.post("http://127.0.0.1:5000/pptx-to-pdf", files=files)

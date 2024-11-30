@@ -7,11 +7,12 @@ from flask import Flask, request, send_from_directory, after_this_request
 
 from conversion_server import app
 
+
 @app.before_request
 def before_request():
-    files_to_delete = glob(os.path.join(app.config['TEMP_DIR'], "*"))
+    files_to_delete = glob(os.path.join(app.config["TEMP_DIR"], "*"))
     for file in files_to_delete:
-        try: 
+        try:
             os.remove(file)
         except PermissionError:
             pass
@@ -20,18 +21,18 @@ def before_request():
 @app.route("/pptx-to-pdf", methods=["POST"])
 def convert():
 
-    file= request.files['file']
-    input_save_location = os.path.join(app.config['TEMP_DIR'], file.filename)
-    
+    file = request.files["file"]
+    input_save_location = os.path.join(app.config["TEMP_DIR"], file.filename)
+
     file.save(input_save_location)
 
-    output_filename= os.path.basename(pptx_to_pdf(input_save_location, app.config['TEMP_DIR']))   
-    print("file should be good")
-    print(output_filename)
-    print(os.getcwd())
+    output_filename = os.path.basename(
+        pptx_to_pdf(input_save_location, app.config["TEMP_DIR"])
+    )
 
-    return send_from_directory(app.config['TEMP_DIR'], output_filename)
+    return send_from_directory(app.config["TEMP_DIR"], output_filename)
+
 
 @app.route("/")
 def home():
-    return "Hello, world!"
+    return "Send powerpoint files to this port at the /pptx-to-pdf endpoint"

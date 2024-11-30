@@ -14,6 +14,7 @@ import shutil
 
 from .util import emu_to_pixels, emu_to_pt
 
+
 def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height_emu):
     # Convert slide dimensions from EMUs to pixels
     slide_width = emu_to_pixels(slide_width_emu)
@@ -143,6 +144,7 @@ def pptx_as_images(pptx_path) -> list[Image.Image]:
         ret.append(image)
     return ret
 
+
 def save_pptx_as_images(pptx_path, output_folder) -> str:
     prs = pptx.Presentation(pptx_path)
     os.makedirs(output_folder, exist_ok=True)
@@ -198,5 +200,3 @@ def pptx_to_pdf(pptx_path, output_folder=None, delete_intermediate_images=True) 
         shutil.rmtree(images_dir)
 
     return output_name
-
-

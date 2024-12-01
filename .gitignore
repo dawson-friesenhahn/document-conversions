@@ -3,3 +3,5 @@
 .~**
 .temp_files/*
 *.pyc
+__pycache__/*
+~$*.pptx

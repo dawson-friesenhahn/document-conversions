@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 import glob
 import shutil
 
-from .util import emu_to_pixels, emu_to_pt
+from .util import emu_to_pixels, emu_to_pt, create_slide_number_string
 
 
 def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height_emu):
@@ -36,11 +36,12 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
                     x = emu_to_pixels(shape.left)
                     y = emu_to_pixels(shape.top)
 
+                    font= ImageFont.load_default(size=emu_to_pt(run.font.size))                   
                     # Draw text onto the image (adjust position and styling as needed)
                     draw.text(
                         (x, y),
                         run.text,
-                        font=ImageFont.load_default(size=emu_to_pt(run.font.size)),
+                        font=font,
                         fill=(0, 0, 0),
                     )
 
@@ -164,7 +165,7 @@ def save_pptx_as_images(pptx_path, output_folder) -> str:
         image = render_slide_as_image(slide, slide_width_emu, slide_height_emu)
 
         # Save the image as PNG
-        image.save(f"{output_folder}/slide_{slide_num + 1}.png")
+        image.save(f"{output_folder}/slide_{create_slide_number_string(slide_num+1)}.png")
 
     return output_folder
 

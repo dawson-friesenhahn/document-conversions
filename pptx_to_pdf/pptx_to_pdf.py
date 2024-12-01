@@ -2,6 +2,7 @@ import pptx
 import pptx.shapes
 import pptx.slide
 import pptx.table
+import pptx.text.text
 from pptx.enum.shapes import MSO_SHAPE_TYPE, MSO_AUTO_SHAPE_TYPE
 
 from PIL import Image, ImageDraw, ImageFont
@@ -12,7 +13,7 @@ from reportlab.pdfgen import canvas
 import glob
 import shutil
 
-from .util import emu_to_pixels, emu_to_pt, create_slide_number_string
+from .util import emu_to_pixels, emu_to_pt, pt_to_emu, create_slide_number_string
 
 
 def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height_emu):
@@ -26,24 +27,34 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
 
     # Loop through each shape on the slide and render its content
     for shape in slide.shapes:
-        if shape.is_placeholder:
-            continue  # Skip placeholders
+        # if shape.is_placeholder:
+        #     continue  # Skip placeholders
         if shape.has_text_frame:
+            y_offset: int = 0
             # Render text
             for para in shape.text_frame.paragraphs:
                 for run in para.runs:
+                    
                     # Convert the left/top position from EMUs to pixels
                     x = emu_to_pixels(shape.left)
-                    y = emu_to_pixels(shape.top)
+                    y = emu_to_pixels(shape.top + y_offset)
+
+                    if run.font.size:
+                        y_offset += run.font.size
+                    else:
+                        y_offset += pt_to_emu(12)
 
                     font= ImageFont.load_default(size=emu_to_pt(run.font.size))                   
                     # Draw text onto the image (adjust position and styling as needed)
-                    draw.text(
-                        (x, y),
-                        run.text,
-                        font=font,
-                        fill=(0, 0, 0),
-                    )
+                    try:
+                        draw.text(
+                            (x, y),
+                            run.text,
+                            font=font,
+                            fill=(0, 0, 0),
+                        )
+                    except Exception as e:
+                        print(e)
 
         # Example for simple rectangles (can be extended to other shapes)
         if False and shape.shape_type == MSO_AUTO_SHAPE_TYPE.RECTANGLE:  # Rectangle

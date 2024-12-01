@@ -36,7 +36,7 @@ def convert():
     file.save(input_save_location)
     try:
         output_filename = os.path.basename(
-            pptx_to_pdf(input_save_location, app.config["TEMP_DIR"])
+            pptx_to_pdf(input_save_location, app.config["TEMP_DIR"], delete_intermediate_images=True)
         )
 
         return send_from_directory(app.config["TEMP_DIR"], output_filename)

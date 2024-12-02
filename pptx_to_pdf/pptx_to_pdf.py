@@ -14,6 +14,7 @@ import glob
 import shutil
 
 from .util import emu_to_pixels, emu_to_pt, pt_to_emu, create_slide_number_string
+from . import ARIAL_FONT
 
 
 def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height_emu):
@@ -41,10 +42,14 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
 
                     if run.font.size:
                         y_offset += run.font.size
+                        font_size_pt = emu_to_pt(run.font.size)
                     else:
                         y_offset += pt_to_emu(12)
+                        font_size_pt= 12
 
-                    font= ImageFont.load_default(size=emu_to_pt(run.font.size))                   
+                    # print(f"({x},{y}): {run.text}")
+                    #font= ImageFont.load_default(size=font_size_pt)                   
+                    font= ImageFont.truetype(ARIAL_FONT, size=font_size_pt)
                     # Draw text onto the image (adjust position and styling as needed)
                     try:
                         draw.text(
@@ -100,12 +105,19 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
                             for run in para.runs:
                                 if run.font.size < min_font_size:
                                     min_font_size = run.font.size
+                        
+                        if min_font_size > 1000:
+                            min_font_size = 12
 
                         # Font size for table text (adjust as needed)
                         font_size_pt = emu_to_pt(
                             min_font_size
                         )  # TODO dynamically get the font size
-                        font = ImageFont.load_default(size=font_size_pt)
+
+                        if not font_size_pt:
+                            font_size_pt = 12
+                        #font = ImageFont.load_default(size=font_size_pt)
+                        font= ImageFont.truetype(ARIAL_FONT, size=font_size_pt)
 
                         # Calculate the bounding box of the text
                         bbox = draw.textbbox((0, 0), cell_text, font=font)

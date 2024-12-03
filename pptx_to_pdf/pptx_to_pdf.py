@@ -152,6 +152,16 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
 
     return image
 
+def extract_text_from_slide(slide: pptx.slide.Slide) -> str:
+        ret= ""
+        for shape in slide.shapes:
+        # if shape.is_placeholder:
+        #     continue  # Skip placeholders
+            if shape.has_text_frame:
+                ret+= (shape.text + '\n')
+
+        return ret
+
 
 def pptx_as_images(pptx_path) -> list[Image.Image]:
     prs = pptx.Presentation(pptx_path)
@@ -228,3 +238,11 @@ def pptx_to_pdf(pptx_path: str, output_folder: str = None) -> str:
     images_to_pdf(images, output_name)
 
     return output_name
+
+def extract_text_from_pptx(pptx_path: str) -> str:
+    prs = pptx.Presentation(pptx_path)
+    ret = ""
+    for slide in prs.slides:
+        # Render the slide as an image
+        ret+= extract_text_from_slide(slide)
+    return ret

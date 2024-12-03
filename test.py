@@ -16,5 +16,15 @@ if __name__ == "__main__":
     else:
         with open("output.pdf", "wb") as f:
             f.write(resp.content)
+        print(f"saved file as {os.path.join(os.getcwd(), 'output.pdf')}")
+
+    files = {"file": open("tlas.pptx", "rb")}
+    resp = requests.post("http://127.0.0.1:5000/extract-pptx-text", files=files)
+    if not resp.ok:
+        print(resp.text)
+        print(resp.status_code)
+    else:
+        print(f"Powerpoint contained text:\n{resp.text}")
+    
 
     print("done")

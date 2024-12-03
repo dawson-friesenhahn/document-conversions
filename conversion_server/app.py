@@ -1,4 +1,4 @@
-from pptx_to_pdf.pptx_to_pdf import pptx_to_pdf
+from pptx_to_pdf.pptx_to_pdf import pptx_to_pdf, extract_text_from_pptx
 from pptx.exc import PackageNotFoundError
 import os
 from glob import glob
@@ -18,6 +18,27 @@ def before_request():
         except PermissionError:
             pass
 
+@app.route("/extract-pptx-text", methods=["POST"])
+def extract_pptx_text():
+    try:
+        file = request.files["file"]
+    except KeyError:
+        return "No file attached", 400
+    
+    extension = file.filename.split(".")[1]
+
+    if extension != "ppt" and extension != "pptx":
+        return "Bad file extension", 400
+
+    input_save_location = os.path.join(app.config["TEMP_DIR"], file.filename)
+
+    file.save(input_save_location)
+    try:
+        text= extract_text_from_pptx(input_save_location)
+        return text, 200
+    except PackageNotFoundError as e:
+        print(e)
+        return "Invalid Powerpoint File", 200
 
 @app.route("/pptx-to-pdf", methods=["POST"])
 def convert():

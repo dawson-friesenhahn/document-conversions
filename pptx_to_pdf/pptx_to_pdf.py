@@ -10,11 +10,12 @@ import os
 import io
 
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 import glob
 import shutil
 
 from .util import emu_to_pixels, emu_to_pt, pt_to_emu, create_slide_number_string
-from . import ARIAL_FONT
+from . import SYMBOLA_FONT, DEFAULT_FONT_SIZE_PT
 
 
 def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height_emu):
@@ -35,7 +36,7 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
             # Render text
             for para in shape.text_frame.paragraphs:
                 for run in para.runs:
-                    
+
                     # Convert the left/top position from EMUs to pixels
                     x = emu_to_pixels(shape.left)
                     y = emu_to_pixels(shape.top + y_offset)
@@ -44,12 +45,12 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
                         y_offset += run.font.size
                         font_size_pt = emu_to_pt(run.font.size)
                     else:
-                        y_offset += pt_to_emu(12)
-                        font_size_pt= 12
+                        y_offset += pt_to_emu(DEFAULT_FONT_SIZE_PT)
+                        font_size_pt = DEFAULT_FONT_SIZE_PT
 
                     # print(f"({x},{y}): {run.text}")
-                    #font= ImageFont.load_default(size=font_size_pt)                   
-                    font= ImageFont.truetype(ARIAL_FONT, size=font_size_pt)
+                    # font= ImageFont.load_default(size=font_size_pt)
+                    font = ImageFont.truetype(SYMBOLA_FONT, size=font_size_pt)
                     # Draw text onto the image (adjust position and styling as needed)
                     try:
                         draw.text(
@@ -105,9 +106,9 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
                             for run in para.runs:
                                 if run.font.size < min_font_size:
                                     min_font_size = run.font.size
-                        
+
                         if min_font_size > 1000:
-                            min_font_size = 12
+                            min_font_size = DEFAULT_FONT_SIZE_PT
 
                         # Font size for table text (adjust as needed)
                         font_size_pt = emu_to_pt(
@@ -115,9 +116,9 @@ def render_slide_as_image(slide: pptx.slide.Slide, slide_width_emu, slide_height
                         )  # TODO dynamically get the font size
 
                         if not font_size_pt:
-                            font_size_pt = 12
-                        #font = ImageFont.load_default(size=font_size_pt)
-                        font= ImageFont.truetype(ARIAL_FONT, size=font_size_pt)
+                            font_size_pt = DEFAULT_FONT_SIZE_PT
+                        # font = ImageFont.load_default(size=font_size_pt)
+                        font = ImageFont.truetype(SYMBOLA_FONT, size=font_size_pt)
 
                         # Calculate the bounding box of the text
                         bbox = draw.textbbox((0, 0), cell_text, font=font)
@@ -188,12 +189,14 @@ def save_pptx_as_images(pptx_path, output_folder) -> str:
         image = render_slide_as_image(slide, slide_width_emu, slide_height_emu)
 
         # Save the image as PNG
-        image.save(f"{output_folder}/slide_{create_slide_number_string(slide_num+1)}.png")
+        image.save(
+            f"{output_folder}/slide_{create_slide_number_string(slide_num+1)}.png"
+        )
 
     return output_folder
 
 
-def images_to_pdf(images_dir: str, filename: str):
+def images_dir_to_pdf(images_dir: str, filename: str):
     c = canvas.Canvas(filename=filename, pagesize=(841.89, 595.27))
     images = glob.glob(os.path.join(images_dir, "*.png"))
     for image in images:
@@ -205,22 +208,23 @@ def images_to_pdf(images_dir: str, filename: str):
     c.save()
 
 
-def pptx_to_pdf(pptx_path, output_folder=None, delete_intermediate_images=True) -> str:
+def images_to_pdf(images: list[Image.Image], filename: str):
+    c = canvas.Canvas(filename=filename, pagesize=(841.89, 595.27))
+    for image in images:
+        c.drawImage(ImageReader(image), 0, 0, width=841.89, height=595.27)
+        c.showPage()
+    c.save()
+
+
+def pptx_to_pdf(pptx_path: str, output_folder: str = None) -> str:
     output_name = os.path.basename(pptx_path).split(".")[0] + ".pdf"
     if not output_folder:
         output_folder = os.getcwd()
-    if output_folder:
-        output_name = os.path.join(output_folder, output_name)
 
-    images_dir = save_pptx_as_images(
-        pptx_path, output_folder
-    )  # will create new directory there and save the images
+    output_name = os.path.join(output_folder, output_name)
 
-    # print(slides_as_images)
+    images = pptx_as_images(pptx_path)
 
-    images_to_pdf(images_dir, output_name)
-
-    if delete_intermediate_images:
-        shutil.rmtree(images_dir)
+    images_to_pdf(images, output_name)
 
     return output_name

@@ -19,7 +19,7 @@ python -m venv .venv
 
 The server accepts POST requests containing ppt and pptx files at the `/pptx-to-pdf` endpoint. 
 
-The server also accepts a POST request containing the pptx file at the '/extract-pptx-text' endpoint.
+The server also accepts a POST request containing the pptx file at the `/extract-pptx-text` endpoint.
 
 For example usage, see [test.py](test.py)
 
